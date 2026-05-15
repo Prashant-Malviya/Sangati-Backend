@@ -3,10 +3,11 @@ dotenv.config()
 
 import mongoose from 'mongoose'
 mongoose.connect(process.env.DB!)
+.then(()=>console.log("coneected to db"))
+.catch((err)=>console.log(err))
 
 import  express  from 'express';
 import cors from 'cors';
-import { signup } from './controller/user.controller';
 import AuthRouter from './router/auth.router';
 
 const app = express()

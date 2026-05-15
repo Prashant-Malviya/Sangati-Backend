@@ -1,4 +1,5 @@
 import {Schema, model} from 'mongoose'
+import bcrypt from 'bcrypt'
 
 const authSchema = new Schema({
 
@@ -25,6 +26,11 @@ const authSchema = new Schema({
     }
 
 }, {timestamps: true});
+
+authSchema.pre('save',async function(next){
+    this.password = await bcrypt.hash(this.password.toString(),12)
+    next()
+})
 
 const AuthModel = model("Auth", authSchema)
 
