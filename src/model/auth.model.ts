@@ -13,11 +13,13 @@ const authSchema = new Schema({
         type: String,
         required: true,
         trim: true,
+        unique: true,
     },
     mobile: {
         type: String,
         required: true,
         trim: true,
+        unique: true,
     },
     password: {
         type: String,
@@ -27,9 +29,9 @@ const authSchema = new Schema({
 
 }, {timestamps: true});
 
-authSchema.pre('save',async function(next){
-    this.password = await bcrypt.hash(this.password.toString(),12)
-    next()
+authSchema.pre('save', async function() {
+    if (!this.isModified('password')) return
+    this.password = await bcrypt.hash(this.password.toString(), 12)
 })
 
 const AuthModel = model("Auth", authSchema)
