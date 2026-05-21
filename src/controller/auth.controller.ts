@@ -13,6 +13,10 @@ interface PayloadInterface {
   mobile: string;
 }
 
+interface ErrorMessage extends Error {
+  status? : number
+}
+
 const generateToken = (payload: PayloadInterface) => {
   const accessToken = jwt.sign(payload, process.env.AUTH_SECRET!, {
     expiresIn: accessTokenExpiry,
@@ -25,7 +29,9 @@ export const signup = async (req: Request, res: Response) => {
   try {
     await AuthModel.create(req.body);
     res.status(200).json({ message: "Signup Success" });
-  } catch (error: any) {
+  } catch (error: unknown) {
+
+    if(error instanceof Error)
     res.status(500).json({ message: error.message });
   }
 };
@@ -35,12 +41,21 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const user = await AuthModel.findOne({ email });
 
-    if (!user) throw new Error("User not found, pleaase try to signup first");
+    if (!user) {
+      const error: ErrorMessage = new Error("User not found, please try to signup first")
+      error.status = 404
+      throw error
+    }
 
     const isLogin = await bcrypt.compare(password, user.password);
 
     if (!isLogin)
-      throw new Error("Invalid credentials , email or password incorrect");
+    {
+      const error:ErrorMessage = new Error("Invalid credentials, email or password incorrect")
+
+      error.status = 401
+      throw error
+    }
 
     const payload = {
       id: user._id,
@@ -52,12 +67,16 @@ export const login = async (req: Request, res: Response) => {
 
     const options = {
         httpOnly: true,
-        maxAge: (10*60)
+        maxAge: (10*60)*1000,
+        secure: false,
+        domain: 'localhost'
     }
     res.cookie("accessToken",accessToken,options)
     res.json({ message: "login successfully" });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    if(error instanceof Error){
+      const status = (error as ErrorMessage).status || 500
+    res.status(status).json({ message: error.message });}
   }
 };
 
