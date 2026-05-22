@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
+import { Request, response, Response } from "express";
 import AuthModel from "../model/auth.model";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { CatchError, TryError } from "../util/error";
 
 const accessTokenExpiry = "10m";
 
@@ -11,10 +12,6 @@ interface PayloadInterface {
   fullname: string;
   email: string;
   mobile: string;
-}
-
-interface ErrorMessage extends Error {
-  status? : number
 }
 
 const generateToken = (payload: PayloadInterface) => {
@@ -41,21 +38,12 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const user = await AuthModel.findOne({ email });
 
-    if (!user) {
-      const error: ErrorMessage = new Error("User not found, please try to signup first")
-      error.status = 404
-      throw error
-    }
+    if (!user)  throw TryError("User not found, pleaase try to signup first",404)
 
     const isLogin = await bcrypt.compare(password, user.password);
 
     if (!isLogin)
-    {
-      const error:ErrorMessage = new Error("Invalid credentials, email or password incorrect")
-
-      error.status = 401
-      throw error
-    }
+      throw TryError("Invalid credentials email or password incorrect",401)
 
     const payload = {
       id: user._id,
@@ -74,9 +62,7 @@ export const login = async (req: Request, res: Response) => {
     res.cookie("accessToken",accessToken,options)
     res.json({ message: "login successfully" });
   } catch (error: unknown) {
-    if(error instanceof Error){
-      const status = (error as ErrorMessage).status || 500
-    res.status(status).json({ message: error.message });}
+    CatchError(error,res, "Login failed please try after sometime")
   }
 };
 
