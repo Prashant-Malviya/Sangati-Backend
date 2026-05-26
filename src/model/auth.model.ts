@@ -3,6 +3,10 @@ import bcrypt from 'bcrypt'
 
 const authSchema = new Schema({
 
+    image: {
+        type: String,
+        default: null,
+    },
     fullname : {
         type: String,
         required: true,
