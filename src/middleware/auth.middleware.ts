@@ -8,6 +8,7 @@ export interface PayloadInterface {
   fullname: string;
   email: string;
   mobile: string;
+  image: string | null
 }
 
 export interface SessionInterface extends Request{
@@ -33,6 +34,7 @@ const AuthMiddlware = async(req:SessionInterface, res:Response, next: NextFuncti
         email: payload.email,
         mobile: payload.mobile,
         fullname: payload.fullname,
+        image: payload.image
     }
 
     next()

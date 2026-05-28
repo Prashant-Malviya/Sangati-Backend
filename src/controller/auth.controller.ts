@@ -3,7 +3,8 @@ import AuthModel from "../model/auth.model";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { CatchError, TryError } from "../util/error";
-import { PayloadInterface } from "../middleware/auth.middleware";
+import { PayloadInterface, SessionInterface } from "../middleware/auth.middleware";
+import { downloadObject } from "../util/s3";
 
 const accessTokenExpiry = "10m";
 
@@ -38,17 +39,19 @@ export const login = async (req: Request, res: Response) => {
     if (!isLogin)
       throw TryError("Invalid credentials email or password incorrect",401)
 
+    
     const payload = {
       id: user._id,
       fullname: user.fullname,
       email: user.email,
       mobile: user.mobile,
+      image : user.image ? await downloadObject(user.image) : null
     };
     const accessToken = generateToken(payload);
 
     const options = {
         httpOnly: true,
-        maxAge: (60*60)*1000,
+        maxAge: (60)*1000,
         secure: false,
         domain: 'localhost'
     }
@@ -77,5 +80,23 @@ export const getSession = async(req: Request, res: Response) => {
   } catch (error) {
     
     CatchError(error, res, "Invalid session")
+  }
+}
+
+export const updateProfilePicture = async (req: SessionInterface, res: Response)=>{
+  try {
+    const path = req.body.path;
+
+    if(!path || !req.session)
+      throw TryError("Failed to update profile picture",400)
+    
+   await AuthModel.updateOne({_id: req.session.id}, {$set: {image: path}})
+
+   const url = await downloadObject(path);
+   res.json({image:url})
+
+  } catch (error) {
+    
+    CatchError(error, res, "Failed to update profile picture")
   }
 }
