@@ -4,7 +4,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import mongoose from "mongoose";
 
 export interface PayloadInterface {
-  id: mongoose.Types.ObjectId;
+  id: mongoose.Types.ObjectId | string
   fullname: string;
   email: string;
   mobile: string;
@@ -22,7 +22,7 @@ const AuthMiddlware = async(req:SessionInterface, res:Response, next: NextFuncti
     const accessToken = req.cookies.accessToken;
 
     if(!accessToken){
-        throw TryError("Unauthorized!", 401)
+        throw TryError("Failed to authorize user", 401)
     }
 
     const payload = await jwt.verify(accessToken, process.env.AUTH_SECRET!) as JwtPayload
@@ -41,7 +41,7 @@ const AuthMiddlware = async(req:SessionInterface, res:Response, next: NextFuncti
 
     } catch (error) {
         
-        CatchError(error,res, "Unauthorized");
+        CatchError(error,res, "Failed to authorize user");
     }
 
 }

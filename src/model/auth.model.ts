@@ -1,5 +1,7 @@
 import {Schema, model} from 'mongoose'
 import bcrypt from 'bcrypt'
+// import {v4 as uuid} from 'uuid'
+// import moment from 'moment';
 
 const authSchema = new Schema({
 
@@ -29,6 +31,12 @@ const authSchema = new Schema({
         type: String,
         required: true,
         trim: true,
+    },
+    refreshToken: {
+        type: String,
+    },
+    expiry: {
+        type: Date
     }
 
 }, {timestamps: true});
@@ -36,6 +44,15 @@ const authSchema = new Schema({
 authSchema.pre('save', async function() {
     if (!this.isModified('password')) return
     this.password = await bcrypt.hash(this.password.toString(), 12)
+})
+
+authSchema.pre('save', function(){
+    // following we use when we signup user and directly send to dashboard in modern website this approach is followed
+    // this.refreshToken = uuid()
+    // this.expiry = moment().add(7, "days").toDate() 
+    
+    this.refreshToken = null
+    this.expiry = null;
 })
 
 const AuthModel = model("Auth", authSchema)
