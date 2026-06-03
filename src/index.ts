@@ -13,6 +13,7 @@ import cookieParser from "cookie-parser";
 import AuthRouter from "./router/auth.router";
 import StorageRouter from "./router/storage.router";
 import AuthMiddlware from "./middleware/auth.middleware";
+import FriendRouter from "./router/friend.router";
 
 const app = express();
 app.listen(process.env.PORT || 8080, () =>
@@ -31,3 +32,4 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use("/auth", AuthRouter);
 app.use("/storage",AuthMiddlware, StorageRouter);
+app.use("/friend",AuthMiddlware, FriendRouter);
