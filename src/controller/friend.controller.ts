@@ -1,49 +1,42 @@
-import { Response } from "express"
-import { CatchError } from "../util/error"
-import FriendModel from "../model/friend.model"
-import { SessionInterface } from "../middleware/auth.middleware"
-import AuthModel from "../model/auth.model"
+import { Response } from "express";
+import { CatchError } from "../util/error";
+import FriendModel from "../model/friend.model";
+import { SessionInterface } from "../middleware/auth.middleware";
+import AuthModel from "../model/auth.model";
 
-export const addFriend = async(req: SessionInterface, res: Response)=>{
-    try {
+export const addFriend = async (req: SessionInterface, res: Response) => {
+  try {
+    req.body.user = req.session?.id;
 
-        req.body.user = req.session?.id
-        
-        const friend = await FriendModel.create(req.body)
-        res.json(friend)
+    const friend = await FriendModel.create(req.body);
+    res.json(friend);
+  } catch (error) {
+    CatchError(error, res, "Failed to send friend request");
+  }
+};
 
-    } catch (error) {
-        
-        CatchError(error, res, "Failed to send friend request")
-    }
-}
+export const fetchFriends = async (req: SessionInterface, res: Response) => {
+  try {
+    const user = req.session?.id;
+    const friends = await FriendModel.find({ user });
 
-export const fetchFriends = async (req: SessionInterface, res: Response)=>{
+    res.json(friends);
+  } catch (error) {
+    CatchError(error, res, "Failed to send friend request");
+  }
+};
 
-    try {
-        
-        const user = req.session?.id;
-        const friends = await FriendModel.find({user})
-
-        res.json(friends);
-
-    } catch (error) {
-        
-        CatchError(error,res,"Failed to send friend request")
-    }
-}
-
-export const suggestedFriends = async (req: SessionInterface, res: Response)=>{
-    try {
-        
-       const friends = await AuthModel.aggregate([
-        {$sample: {size:5}},
-        {$project: {fullname: 1, image: 1}}
-       ])
-       res.json(friends);
-
-    } catch (error) {
-        
-        CatchError(error, res, "Failed to send friend request")
-    }
-}
+export const suggestedFriends = async (
+  req: SessionInterface,
+  res: Response,
+) => {
+  try {
+    const friends = await AuthModel.aggregate([
+      { $sample: { size: 5 } },
+      { $project: { fullname: 1, image: 1 } },
+    ]);
+    res.json(friends);
+  } catch (error) {
+    CatchError(error, res, "Failed to send friend request");
+  }
+};
