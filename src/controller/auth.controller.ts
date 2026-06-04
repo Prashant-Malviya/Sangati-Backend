@@ -4,7 +4,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { CatchError, TryError } from "../util/error";
 import { PayloadInterface, SessionInterface } from "../middleware/auth.middleware";
-import { downloadObject } from "../util/s3";
 import {v4 as uuid} from 'uuid'
 import moment from "moment";
 
@@ -64,7 +63,7 @@ export const login = async (req: Request, res: Response) => {
       fullname: user.fullname,
       email: user.email,
       mobile: user.mobile,
-      image : user.image ? await downloadObject(user.image) : null
+      image : user.image!
     };
 
     const {accessToken, refreshToken} = generateToken(payload);
@@ -85,8 +84,6 @@ export const refreshToken = async(req: SessionInterface, res: Response) => {
     
     if(!req.session)
       throw TryError("Failed to refresh token", 401)
-
-    req.session.image = (req.session.image ? await downloadObject(req.session.image) : null)
     
     const {accessToken,refreshToken} = generateToken(req.session);
     
@@ -124,19 +121,20 @@ export const getSession = async(req: Request, res: Response) => {
 
 export const updateProfilePicture = async (req: SessionInterface, res: Response)=>{
   try {
-    const path = req.body.path;
+    const path = `${process.env.S3_URL}/${req.body.path}`
 
     if(!path || !req.session)
       throw TryError("Failed to update profile picture",400)
     
    await AuthModel.updateOne({_id: req.session.id}, {$set: {image: path}})
 
-   const url = await downloadObject(path);
-   res.json({image:url})
+  
+   res.json({image:path})
 
   } catch (error) {
     
     CatchError(error, res, "Failed to update profile picture")
+    
   }
 }
 
@@ -150,7 +148,7 @@ export const logout = async(req: Request, res:Response)=>{
       domain: 'localhost',
     }
 
-    res.clearCookie("accessToken", options)
+    res.clearCookie("accesssToken", options)
     res.clearCookie("refreshToken", options)
     res.json({message: "Logout success"})
   } catch (error) {
