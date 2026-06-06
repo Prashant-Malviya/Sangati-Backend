@@ -1,43 +1,47 @@
-import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import {Request, Response} from "express";
+import {
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { Request, Response } from "express";
 import { CatchError, TryError } from "../util/error";
 import { downloadObject, isFileExist, uploadObject } from "../util/s3";
 
+export const downloadFile = async (req: Request, res: Response) => {
+  try {
+    const path = req.body?.path;
+    if (!path)
+      throw TryError(
+        "Failed to Generate download url because Path is missing",
+        400,
+      );
 
-export const downloadFile = async(req: Request, res: Response)=>{
-    try {
-        const path = req.body?.path
-        if(!path)
-            throw TryError("Failed to Generate download url because Path is missing",400);
+    const isExist = await isFileExist(path);
 
-        const isExist = await isFileExist(path)
+    if (!isExist) throw TryError("File does not exists", 404);
 
-        if(!isExist)
-            throw TryError("File does not exists",404)
+    const url = await downloadObject(path);
 
+    res.json({ url });
+  } catch (error) {
+    CatchError(error, res, "Failed to generate download url");
+  }
+};
 
-       const url = await downloadObject(path);
+export const uploadFile = async (req: Request, res: Response) => {
+  try {
+    const path = req.body?.path;
+    const type = req.body?.type;
+    const status = req.body?.status;
 
-       res.json({url})
+    if (!path || !type || !status)
+      throw TryError("Invalid request path or type is required", 400);
 
-    } catch (error) {
-        CatchError(error, res, "Failed to generate download url")
-    }
-}
+    const url = await uploadObject(path, type, status);
 
-export const uploadFile =async (req: Request, res: Response)=>{
-    try {
-        const path = req.body?.path
-        const type = req.body?.type
-        const status = req.body?.status
-
-        if(!path || !type || !status)
-            throw TryError("Invalid request path or type is required", 400);
-
-        const url = await uploadObject(path,type, status);
-
-        res.json({url})
-    } catch (error) {
-        CatchError(error,res,"Failed to upload file")
-    }
-}
+    res.json({ url });
+  } catch (error) {
+    CatchError(error, res, "Failed to upload file");
+  }
+};

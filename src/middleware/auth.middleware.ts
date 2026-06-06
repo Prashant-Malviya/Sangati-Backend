@@ -4,46 +4,48 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import mongoose from "mongoose";
 
 export interface PayloadInterface {
-  id: mongoose.Types.ObjectId | string
+  id: mongoose.Types.ObjectId | string;
   fullname: string;
   email: string;
   mobile: string;
-  image: string | null
+  image: string | null;
 }
 
-export interface SessionInterface extends Request{
-    session?: PayloadInterface
+export interface SessionInterface extends Request {
+  session?: PayloadInterface;
 }
 
-const AuthMiddlware = async(req:SessionInterface, res:Response, next: NextFunction)=>{
-   
-    try {
-
+const AuthMiddlware = async (
+  req: SessionInterface,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
     const accessToken = req.cookies.accessToken;
 
-    if(!accessToken){
-        throw TryError("Failed to authorize user", 401)
+    if (!accessToken) {
+      throw TryError("Failed to authorize user", 401);
     }
 
-    const payload = await jwt.verify(accessToken, process.env.AUTH_SECRET!) as JwtPayload
+    const payload = (await jwt.verify(
+      accessToken,
+      process.env.AUTH_SECRET!,
+    )) as JwtPayload;
 
     console.log(payload);
-    
+
     req.session = {
-        id: payload.id,
-        email: payload.email,
-        mobile: payload.mobile,
-        fullname: payload.fullname,
-        image: payload.image
-    }
+      id: payload.id,
+      email: payload.email,
+      mobile: payload.mobile,
+      fullname: payload.fullname,
+      image: payload.image,
+    };
 
-    next()
-
-    } catch (error) {
-        
-        CatchError(error,res, "Failed to authorize user");
-    }
-
-}
+    next();
+  } catch (error) {
+    CatchError(error, res, "Failed to authorize user");
+  }
+};
 
 export default AuthMiddlware;

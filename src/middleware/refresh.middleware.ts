@@ -1,44 +1,43 @@
 import { NextFunction, Request, Response } from "express";
 import { CatchError, TryError } from "../util/error";
-import AuthModel from "../model/auth.model"
+import AuthModel from "../model/auth.model";
 import moment from "moment";
 import { SessionInterface } from "./auth.middleware";
 
-const RefreshToken = async(req: SessionInterface, res: Response, next:NextFunction)=>{
-    try {
-       
-        const refreshToken = req.cookies.refreshToken
+const RefreshToken = async (
+  req: SessionInterface,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
 
-        if(!refreshToken)
-            throw TryError("Failed to refresh token", 401);
+    if (!refreshToken) throw TryError("Failed to refresh token", 401);
 
-        const user = await AuthModel.findOne({refreshToken})
+    const user = await AuthModel.findOne({ refreshToken });
 
-        if(!user)
-            throw TryError("Failed to refresh token", 401)
-        
-        const today = moment();
+    if (!user) throw TryError("Failed to refresh token", 401);
 
-        const expiry = moment(user.expiry);
+    const today = moment();
 
-        const isExpired = today.isAfter(expiry)
+    const expiry = moment(user.expiry);
 
-        if(isExpired)
-            throw TryError("Failed to refresh token", 401)
+    const isExpired = today.isAfter(expiry);
 
-        req.session = {
-            id: user.id,
-            email: user.email,
-            mobile: user.mobile,
-            fullname: user.fullname,
-            image: user.image!, 
-        }
+    if (isExpired) throw TryError("Failed to refresh token", 401);
 
-        next();
+    req.session = {
+      id: user.id,
+      email: user.email,
+      mobile: user.mobile,
+      fullname: user.fullname,
+      image: user.image!,
+    };
 
-    } catch (error) {
-        CatchError(error, res, "Failed to refresh token")
-    }
-}
+    next();
+  } catch (error) {
+    CatchError(error, res, "Failed to refresh token");
+  }
+};
 
-export default RefreshToken
+export default RefreshToken;
