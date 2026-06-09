@@ -1,4 +1,6 @@
-import ProductApiDoc from "../swagger/product.swagger";
+import AuthApiDoc from "../swagger/auth.swagger";
+import FriendApiDoc from "../swagger/friend.swagger";
+import StorageApiDoc from "../swagger/storage.swagger";
 const SwaggerConfig = {
     openapi : "3.0.0",
     info: {
@@ -14,7 +16,9 @@ const SwaggerConfig = {
         {url: process.env.SERVER}
     ],
     paths: {
-        ...ProductApiDoc,
+        ...AuthApiDoc,
+        ...StorageApiDoc,
+        ...FriendApiDoc,
     }
 }
 
