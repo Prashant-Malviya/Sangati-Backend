@@ -10,7 +10,7 @@ export const addFriend = async (req: SessionInterface, res: Response) => {
     req.body.user = req.session?.id;
 
     const friend = await FriendModel.create(req.body);
-    res.json({message:"Friend request sent"});
+    res.json({ message: "Friend request sent" });
   } catch (error) {
     CatchError(error, res, "Failed to send friend request");
   }
@@ -69,33 +69,35 @@ export const suggestedFriends = async (
   }
 };
 
-
-export const friendRequest = async (req: SessionInterface, res: Response)=>{
+export const friendRequest = async (req: SessionInterface, res: Response) => {
   try {
-    
-    if(!req.session)
-      throw TryError("Failed to fetch friends request");
+    if (!req.session) throw TryError("Failed to fetch friends request");
 
-    const friends = await FriendModel.find({friend:req.session.id, status: "requested"})
-    .populate("user","fullname image")
+    const friends = await FriendModel.find({
+      friend: req.session.id,
+      status: "requested",
+    }).populate("user", "fullname image");
 
-    res.json(friends)
+    res.json(friends);
   } catch (error) {
-    CatchError(error,res, "Failed to fetch friend request")
+    CatchError(error, res, "Failed to fetch friend request");
   }
-}
+};
 
-export const updateFriendStatus = async (req: SessionInterface, res: Response)=>{
+export const updateFriendStatus = async (
+  req: SessionInterface,
+  res: Response,
+) => {
   try {
-    
-    if(!req.session)
-      throw TryError("Failed to update friends status");
+    if (!req.session) throw TryError("Failed to update friends status");
 
-    await FriendModel.updateOne({_id: req.params.id}, {$set: {status: req.body.status}})
+    await FriendModel.updateOne(
+      { _id: req.params.id },
+      { $set: { status: req.body.status } },
+    );
 
-    res.json({message: "Friend status updated"})
-
+    res.json({ message: "Friend status updated" });
   } catch (error) {
-    CatchError(error,res, "Failed to fetch friend request")
+    CatchError(error, res, "Failed to fetch friend request");
   }
-}
+};
