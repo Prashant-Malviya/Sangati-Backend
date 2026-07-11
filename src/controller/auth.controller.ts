@@ -11,8 +11,8 @@ import { v4 as uuid } from "uuid";
 import moment from "moment";
 
 const accessTokenExpiry = "10m";
-const tenMinutesInMs = 10 * 60 * 1000;
-const seventDaysInMs = 7 * 24 * 60 * 60 * 1000;
+const tenMinutesInMs = 10 * 24 * 60 * 60 * 1000;
+const seventDaysInMs = (7 * 24 * 60 * 60) * 1000;
 
 type TokenType = "at" | "rt";
 
