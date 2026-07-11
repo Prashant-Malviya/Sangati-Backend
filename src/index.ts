@@ -8,8 +8,8 @@ mongoose
   .catch((err) => console.log(err));
 
 import express from "express";
-import {createServer} from  'http'
-import { Server } from "socket.io";
+import { createServer } from "node:http";
+import { Server } from "socket.io"
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import AuthRouter from "./router/auth.router";
@@ -22,22 +22,19 @@ import StatusSocket from "./socket/status.socket";
 import corsConfig from "./util/cors";
 
 const app = express();
-const server = createServer(app)
 
+const server = createServer(app);
 server.listen(process.env.PORT || 8080, () =>
   console.log(`server is running on ${process.env.PORT}`),
 );
 
 //socket connections
-const io = new Server(server, {cors: corsConfig})
+const io = new Server(server, {cors: corsConfig});
 StatusSocket(io);
 
 //middleware
 app.use( 
-  cors({
-    origin: process.env.CLIENT,
-    credentials: true,
-  }),
+  cors(corsConfig),
 );
 
 
